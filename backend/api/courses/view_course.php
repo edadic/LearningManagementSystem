@@ -1,10 +1,10 @@
 <?php
 session_start();
-include 'db.php';
+include '../../db.php';
 
 // Ensure the user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: ../users/login.php");
     exit();
 }
 
@@ -46,7 +46,7 @@ $result = $conn->query($query);
         ?>
     </table>
     <br>
-    <a href="teacher_dashboard.php">Back to Dashboard</a>
+    <a href="../../../frontend/views/teacher/teacher_dashboard.php">Back to Dashboard</a>
 </body>
 
 </html>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'db.php';
+include '../../db.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'Student') {
     die("Access denied. Only students can submit assignments.");
@@ -53,7 +53,7 @@ $conn->close();
         <button type="submit">Submit Assignment</button>
     </form>
     <br>
-    <a href="student_dashboard.php">Back to Dashboard</a>
+    <a href="../../../frontend/views/student/student_dashboard.php">Back to Dashboard</a>
 </body>
 
 </html>

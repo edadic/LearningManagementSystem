@@ -1,5 +1,5 @@
 <?php
-include 'db.php';
+include '../../db.php';
 session_start();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -24,13 +24,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Redirect based on role
             switch ($user['role']) {
                 case 'Teacher':
-                    header("Location: teacher_dashboard.php");
+                    header("Location: ../../../frontend/views/teacher/teacher_dashboard.php");
                     break;
                 case 'Student':
-                    header("Location: student_dashboard.php");
+                    header("Location: ../../../frontend/views/student/student_dashboard.php");
                     break;
                 case 'Parent':
-                    header("Location: parent_dashboard.php");
+                    header("Location: ../../../frontend/views/parent/parent_dashboard.php");
                     break;
             }
             exit();
