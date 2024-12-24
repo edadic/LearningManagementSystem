@@ -31,10 +31,14 @@ $result = $conn->query($query);
             while ($row = $result->fetch_assoc()) {
                 echo "<tr>";
                 echo "<td>" . $row['assignmentId'] . "</td>";
-                echo "<td>" . $row['title'] . "</td>";
-                echo "<td>" . $row['description'] . "</td>";
+                echo "<td>" . htmlspecialchars($row['title']) . "</td>";
+                echo "<td>" . htmlspecialchars($row['description']) . "</td>";
                 echo "<td>" . $row['deadline'] . "</td>";
-                echo "<td>" . $row['course_name'] . "</td>";
+                echo "<td>" . htmlspecialchars($row['course_name']) . "</td>";
+                echo "<td>
+                    <a href='edit_assignment.php?id=" . $row['assignmentId'] . "'>Edit</a> | 
+                    <a href='delete_assignment.php?id=" . $row['assignmentId'] . "' onclick=\"return confirm('Are you sure you want to delete this assignment?');\">Delete</a>
+                </td>";
                 echo "</tr>";
             }
         } else {
