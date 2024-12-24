@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'db.php';
+include '../../db.php';
 
 // Ensure only teachers can access
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'Teacher') {
@@ -54,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <button type="submit">Assign Grade</button>
     </form>
     <br>
-    <a href="teacher_dashboard.php">Back to Dashboard</a>
+    <a href="../../../frontend/views/teacher/teacher_dashboard.php">Back to Dashboard</a>
 </body>
 
 </html>

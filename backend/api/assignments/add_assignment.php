@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'db.php';
+include '../../db.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'Teacher') {
     die("Access denied. Only teachers can add assignments.");
@@ -28,9 +28,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Add Assignment</title>
 </head>
+
 <body>
     <h2>Add Assignment</h2>
     <form method="POST" action="add_assignment.php">
@@ -49,6 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <button type="submit">Add Assignment</button>
     </form>
     <br>
-    <a href="teacher_dashboard.php">Back to Dashboard</a>
+    <a href="../../../frontend/views/teacher/teacher_dashboard.php">Back to Dashboard</a>
 </body>
+
 </html>

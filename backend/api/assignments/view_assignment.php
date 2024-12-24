@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'db.php';
+include '../../db.php';
 
 // Fetch assignments
 $query = "SELECT a.assignmentId, a.title, a.description, a.deadline, c.name AS course_name 
@@ -47,7 +47,7 @@ $result = $conn->query($query);
         ?>
     </table>
     <br>
-    <a href="teacher_dashboard.php">Back to Dashboard</a>
+    <a href="../../../frontend/views/teacher/teacher_dashboard.php">Back to Dashboard</a>
 </body>
 
 </html>

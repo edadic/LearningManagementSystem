@@ -1,11 +1,11 @@
 <?php
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'Parent') {
-    header("Location: login.php");
+    header("Location: ../../../backend/api/users/login.php");
     exit();
 }
 
-include 'db.php';
+include '../../../backend/db.php';
 $userId = $_SESSION['user_id'];
 ?>
 
@@ -21,12 +21,12 @@ $userId = $_SESSION['user_id'];
     <h3>Parent Dashboard</h3>
 
     <ul>
-        <li><a href="view_attendance.php">View My Child's Attendance</a></li>
-        <li><a href="view_grades.php">View My Child's Grades</a></li>
+        <li><a href="../../../backend/api/attendance/view_attendance.php">View My Child's Attendance</a></li>
+        <li><a href="../../../backend/api/grades/view_grades.php">View My Child's Grades</a></li>
     </ul>
 
     <br>
-    <a href="logout.php">Logout</a>
+    <a href="../../../backend/api/users/logout.php">Logout</a>
 </body>
 
 </html>
