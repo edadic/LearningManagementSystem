@@ -1,0 +1,7 @@
+{
+    "name": "lms/learning-management-system",
+    "description": "Learning Management System with MongoDB",
+    "require": {
+        "mongodb/mongodb": "^2.1"
+    }
+}

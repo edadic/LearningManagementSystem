@@ -1,14 +1,12 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-$host = "localhost";
-$user = "root";
-$password = "";
-$dbname = "LMS";
+require_once __DIR__ . '/../vendor/autoload.php';
 
-$conn = new mysqli($host, $user, $password, $dbname);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-} else {
-    echo "Connected successfully";
+function connectToMongoDB() {
+    try {
+        $client = new MongoDB\Client("mongodb://localhost:27017");
+        return $client->LMS;
+    } catch (Exception $e) {
+        throw new Exception("Database connection failed: " . $e->getMessage());
+    }
 }
+?>
