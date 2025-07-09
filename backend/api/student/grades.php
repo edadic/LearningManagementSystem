@@ -32,25 +32,43 @@ try {
         
         foreach ($submissions as $submission) {
             // Get assignment details
-            $assignment = $assignmentsCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($submission['assignment_id'])]);
+            $assignment = null;
+            try {
+                $assignment = $assignmentsCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($submission['assignment_id'])]);
+            } catch (Exception $e) {
+                $assignment = $assignmentsCollection->findOne(['_id' => $submission['assignment_id']]);
+            }
             if (!$assignment) continue;
             
             // Get course details
-            $course = $coursesCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($assignment['course_id'])]);
+            $course = null;
+            try {
+                $course = $coursesCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($assignment['course_id'])]);
+            } catch (Exception $e) {
+                $course = $coursesCollection->findOne(['_id' => $assignment['course_id']]);
+            }
             if (!$course) continue;
             
             // Verify student is enrolled in the course
-            $enrollment = $enrollmentsCollection->findOne([
-                'student_id' => $student_id,
-                'course_id' => $assignment['course_id']
-            ]);
+            $enrollment = null;
+            try {
+                $enrollment = $enrollmentsCollection->findOne([
+                    'student_id' => $student_id,
+                    'course_id' => $assignment['course_id']
+                ]);
+            } catch (Exception $e) {
+                $enrollment = $enrollmentsCollection->findOne([
+                    'student_id' => $student_id,
+                    'course_id' => $assignment['course_id']
+                ]);
+            }
             if (!$enrollment) continue;
             
             $gradeList[] = [
                 'assignment_id' => $submission['assignment_id'],
                 'assignment_title' => $assignment['title'],
                 'course_id' => $assignment['course_id'],
-                'course_title' => $course['title'],
+                'course_title' => $course['title'] ?? $course['course_name'] ?? 'Unknown Course',
                 'grade' => $submission['grade'],
                 'max_points' => $assignment['max_points'] ?? 100,
                 'percentage' => round(($submission['grade'] / ($assignment['max_points'] ?? 100)) * 100, 2),

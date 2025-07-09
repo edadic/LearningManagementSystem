@@ -278,6 +278,87 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'Teacher') {
             margin-bottom: 1rem;
         }
 
+        .course-group {
+            background: #f6fafd;
+            border-radius: 16px;
+            padding: 2rem 1.5rem 1.5rem 1.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 2px 12px rgba(32,178,170,0.07);
+        }
+        .assignment-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(32,178,170,0.06);
+            padding: 1.5rem 1.2rem;
+            margin-bottom: 1.5rem;
+            border-left: 5px solid #20b2aa;
+            transition: box-shadow 0.2s;
+        }
+        .assignment-card:hover {
+            box-shadow: 0 6px 24px rgba(32,178,170,0.13);
+        }
+        .assignment-card h4 {
+            margin-bottom: 0.5rem;
+            color: #20b2aa;
+        }
+        .submissions-list {
+            margin-top: 1.2rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem 1.2rem;
+        }
+        .submission-row {
+            padding: 0.7rem 0.5rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .submission-row:last-child {
+            border-bottom: none;
+        }
+        .grade-badge {
+            display: inline-block;
+            padding: 0.2rem 0.7rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        .grade-badge.graded {
+            background: #d4edda;
+            color: #155724;
+        }
+        .grade-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        #gradeModal .modal-content {
+            background: #fafdff;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(32,178,170,0.13);
+            padding: 2.5rem 2rem 2rem 2rem;
+        }
+        #gradeModal .form-group {
+            margin-bottom: 1.2rem;
+        }
+        #gradeModal .btn {
+            margin-right: 0.7rem;
+            margin-top: 0.5rem;
+        }
+        #gradeModalContent {
+            min-height: 60px;
+            font-size: 1.05rem;
+            color: #333;
+        }
+        .course-group h3 {
+            margin-bottom: 1.2rem;
+            color: #1a9b94;
+        }
+        .assignment-card > div {
+            margin-bottom: 0.7rem;
+        }
+        .assignment-card button.btn {
+            margin-top: 0.5rem;
+        }
+
         @media (max-width: 768px) {
             .nav-container {
                 flex-direction: column;
@@ -416,6 +497,32 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'Teacher') {
         </div>
     </div>
 
+    <!-- Grade Modal -->
+    <div id="gradeModal" class="modal" style="display:none;z-index:2000;">
+      <div class="modal-content" style="max-width:500px;">
+        <span class="close" onclick="closeGradeModal()">&times;</span>
+        <h3>Grade Submission</h3>
+        <p><strong>Student:</strong> <span id="gradeModalStudent"></span></p>
+        <p><strong>Assignment:</strong> <span id="gradeModalAssignment"></span></p>
+        <div style="margin:1rem 0;"><strong>Submission Content:</strong>
+          <div id="gradeModalContent" style="background:#f8f9fa;padding:1rem;border-radius:8px;margin-top:0.5rem;"></div>
+        </div>
+        <form onsubmit="event.preventDefault();submitGradeModal();">
+          <input type="hidden" id="gradeModalSubmissionId">
+          <div class="form-group">
+            <label>Grade (max <span id="gradeModalMaxPoints"></span>):</label>
+            <input type="number" id="gradeModalGrade" min="0" step="0.5" required>
+          </div>
+          <div class="form-group">
+            <label>Feedback:</label>
+            <textarea id="gradeModalFeedback" rows="3" placeholder="Enter feedback for student"></textarea>
+          </div>
+          <button type="submit" class="btn btn-success">Submit Grade</button>
+          <button type="button" class="btn btn-danger" onclick="closeGradeModal()">Cancel</button>
+        </form>
+      </div>
+    </div>
+
     <script>
         // Tab switching
         function showTab(tabName) {
@@ -552,7 +659,149 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'Teacher') {
 
         // Load grades
         async function loadGrades() {
-            document.getElementById('gradesList').innerHTML = '<p>Grade management coming soon!</p>';
+            const gradesEl = document.getElementById('gradesList');
+            gradesEl.innerHTML = '<div class="loading">Loading assignments to grade...</div>';
+            try {
+                const response = await fetch('../api/teacher/grades.php');
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load assignments');
+                }
+                displayGradingInterfaceByCourse(data.assignments);
+            } catch (error) {
+                gradesEl.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Group assignments by course and display
+        function displayGradingInterfaceByCourse(assignments) {
+            const gradesEl = document.getElementById('gradesList');
+            if (!assignments.length) {
+                gradesEl.innerHTML = '<p>No assignments available for grading.</p>';
+                return;
+            }
+            // Group by course
+            const courses = {};
+            assignments.forEach(a => {
+                if (!courses[a.course_id]) {
+                    courses[a.course_id] = {
+                        title: a.course_title,
+                        assignments: []
+                    };
+                }
+                courses[a.course_id].assignments.push(a);
+            });
+            let html = '';
+            Object.values(courses).forEach(course => {
+                html += `<div class="course-group"><h3>${course.title}</h3>`;
+                course.assignments.forEach(assignment => {
+                    html += `
+                        <div class="assignment-card" style="margin-bottom:1rem;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <div>
+                                    <h4 style="margin-bottom:0.2rem;">${assignment.assignment_title}</h4>
+                                    <span><strong>Due:</strong> ${assignment.due_date || 'No due date'}</span>
+                                    <span style="margin-left:1rem;"><strong>Max Points:</strong> ${assignment.max_points}</span>
+                                </div>
+                                <button class="btn" onclick="toggleSubmissions('${assignment.assignment_id}', this)">View Submissions</button>
+                            </div>
+                            <div id="submissions_${assignment.assignment_id}" class="submissions-list" style="display:none;"></div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            });
+            gradesEl.innerHTML = html;
+        }
+
+        // Toggle submissions for an assignment
+        async function toggleSubmissions(assignmentId, btn) {
+            const submissionsEl = document.getElementById(`submissions_${assignmentId}`);
+            if (submissionsEl.style.display === 'block') {
+                submissionsEl.style.display = 'none';
+                btn.textContent = 'View Submissions';
+                return;
+            }
+            submissionsEl.innerHTML = '<div class="loading">Loading submissions...</div>';
+            submissionsEl.style.display = 'block';
+            btn.textContent = 'Hide Submissions';
+            try {
+                const response = await fetch(`../api/teacher/grades.php?assignment_id=${assignmentId}`);
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load submissions');
+                }
+                displaySubmissionsList(data.submissions, submissionsEl, assignmentId);
+            } catch (error) {
+                submissionsEl.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Display submissions as a clickable list
+        function displaySubmissionsList(submissions, container, assignmentId) {
+            if (!submissions.length) {
+                container.innerHTML = '<p>No submissions found for this assignment.</p>';
+                return;
+            }
+            let html = '<ul style="list-style:none;padding:0;">';
+            submissions.forEach(sub => {
+                html += `
+                    <li style="margin-bottom:1rem;">
+                        <div class="submission-row" style="display:flex;align-items:center;justify-content:space-between;">
+                            <span><strong>${sub.student_name}</strong> - ${sub.submitted_at || 'Not submitted'}
+                                ${sub.grade !== null ? `<span class='grade-badge graded' style='margin-left:1rem;'>Grade: ${sub.grade}/${sub.max_points}</span>` : `<span class='grade-badge pending' style='margin-left:1rem;'>Not graded</span>`}
+                            </span>
+                            <button class="btn btn-success" onclick="openGradeModal('${encodeURIComponent(JSON.stringify(sub))}')">Grade</button>
+                        </div>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            container.innerHTML = html;
+        }
+
+        // Modal for grading a submission
+        function openGradeModal(submissionJson) {
+            const sub = JSON.parse(decodeURIComponent(submissionJson));
+            document.getElementById('gradeModal').style.display = 'block';
+            document.getElementById('gradeModalStudent').textContent = sub.student_name;
+            document.getElementById('gradeModalAssignment').textContent = sub.assignment_title;
+            document.getElementById('gradeModalContent').textContent = sub.content || 'No content submitted';
+            document.getElementById('gradeModalGrade').value = sub.grade !== null ? sub.grade : '';
+            document.getElementById('gradeModalGrade').max = sub.max_points;
+            document.getElementById('gradeModalGrade').placeholder = `0 - ${sub.max_points}`;
+            document.getElementById('gradeModalFeedback').value = sub.feedback || '';
+            document.getElementById('gradeModalSubmissionId').value = sub.submission_id;
+            document.getElementById('gradeModalMaxPoints').textContent = sub.max_points;
+        }
+        function closeGradeModal() {
+            document.getElementById('gradeModal').style.display = 'none';
+        }
+        async function submitGradeModal() {
+            const submissionId = document.getElementById('gradeModalSubmissionId').value;
+            const grade = parseFloat(document.getElementById('gradeModalGrade').value);
+            const feedback = document.getElementById('gradeModalFeedback').value.trim();
+            const maxPoints = parseFloat(document.getElementById('gradeModalGrade').max);
+            if (isNaN(grade) || grade < 0 || grade > maxPoints) {
+                alert(`Please enter a valid grade between 0 and ${maxPoints}`);
+                return;
+            }
+            try {
+                const response = await fetch('../api/teacher/grades.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ submission_id: submissionId, grade: grade, feedback: feedback })
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to submit grade');
+                }
+                alert('Grade submitted successfully!');
+                closeGradeModal();
+                loadGrades();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
         }
 
         // Form submissions
