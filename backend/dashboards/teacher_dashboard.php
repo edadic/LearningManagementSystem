@@ -1,4 +1,6 @@
 <?php
+require_once '../db.php';
+$db = connectToMongoDB();
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'Teacher') {
     header("Location: ../api/users/login.php");
@@ -437,6 +439,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'Teacher') {
                 <!-- Grading interface will be loaded here -->
             </div>
         </div>
+
+
     </div>
 
     <!-- Course Modal -->

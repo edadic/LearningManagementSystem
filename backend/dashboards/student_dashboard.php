@@ -1,11 +1,14 @@
 <?php
 session_start();
+require_once '../db.php';
+
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'Student') {
     header("Location: ../api/users/login.php");
     exit();
 }
 
 $userId = $_SESSION['user_id'];
+$db = connectToMongoDB();
 ?>
 
 <!DOCTYPE html>
@@ -400,7 +403,31 @@ $userId = $_SESSION['user_id'];
             <h2>My Enrolled Courses</h2>
             <div id="coursesLoading" class="loading">Loading courses...</div>
             <div id="coursesError" class="error" style="display: none;"></div>
-            <div id="coursesList"></div>
+            <div id="coursesList">
+                <h2>My Enrolled Courses</h2>
+                <ul>
+                    <?php
+                    $enrollments = $db->enrollments->find(['studentId' => $_SESSION['user_id']])->toArray();
+                    if (empty($enrollments)) {
+                        echo '<p>You are not enrolled in any courses.</p>';
+                    } else {
+                        foreach ($enrollments as $enrollment):
+                            $course = $db->courses->findOne(['_id' => $enrollment['courseId']]);
+                            if ($course): ?>
+                                <li>
+                                    <div class="course-card">
+                                        <h4><?php echo htmlspecialchars($course['name']); ?></h4>
+                                        <p><strong>Instructor:</strong> <?php echo htmlspecialchars($course['instructor']); ?></p>
+                                        <p><strong>Description:</strong> <?php echo htmlspecialchars($course['description']); ?></p>
+                                        <button onclick="window.location.href='../views/course_page.php?courseId=<?php echo htmlspecialchars($course['_id']); ?>'" class="btn btn-primary">Go to Course Page</button>
+                                    </div>
+                                </li>
+                            <?php endif;
+                        endforeach;
+                    }
+                    ?>
+                </ul>
+            </div>
             
             <h3 style="margin-top: 2rem;">Enroll in New Course</h3>
             <p style="margin-bottom: 1rem; color: #666;">Enter either the Course ID or Course Code to enroll in a course.</p>
@@ -425,6 +452,8 @@ $userId = $_SESSION['user_id'];
             <div id="assignmentsLoading" class="loading">Loading assignments...</div>
             <div id="assignmentsError" class="error" style="display: none;"></div>
             <div id="assignmentsList"></div>
+
+            
         </div>
 
         <!-- Grades Tab -->
